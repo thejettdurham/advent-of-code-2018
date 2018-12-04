@@ -15,6 +15,8 @@ let instructionReducer = (acc, str) => {
 };
 
 let part1impl = List.fold_left(instructionReducer, 0);
+
+/* Not idiomatic FP, but it's nice that Reason gives you an escape hatch for imperative programming */
 let part2impl = (lines: array(Js.String.t)) => {
   let firstMatch = ref(None);
   let lineIdx = ref(0);
