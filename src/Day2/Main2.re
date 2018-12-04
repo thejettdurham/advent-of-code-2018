@@ -58,9 +58,8 @@ let part2impl = lines =>
               let diff = diffStrings(a, b);
               fst(diff) == 1 ?
                 {
-                  let commonChars = sa =>
-                    List.fold_left((x, y) => y ++ x, "", sa);
-                  Js.log(commonChars(snd(diff)));
+                  let fmtChars = List.fold_left(Js.String.concat, "");
+                  Js.log(fmtChars(snd(diff)));
                   true;
                 } :
                 false;
