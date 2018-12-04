@@ -4,14 +4,142 @@ open Rationale.Function;
 let dirname = [%bs.node __dirname];
 let inputLines = dirname >>= Util.readInputLinesFromDir;
 
-/* TODO implement Parser */
-let parseInstruction: string => list((int, int)) = x => [(0, 0)];
+let logMe = x => {
+  Js.log(x);
+  x;
+};
+let parseRawId = Js.String.sliceToEnd(~from=1) ||> int_of_string;
+let parseRawCoord =
+  Js.String.slice(~from=0, ~to_=-1)
+  ||> Js.String.split(",")
+  ||> Util.pairOfStringArray;
+let parseRawSize = Js.String.split("x") ||> Util.pairOfStringArray;
 
-/* Use pairs from parse as Map keys, and values are the number of claims for that coordinate */
-/* part1 = count of map values > 1 */
+let makePoints = ((width, height), (x, y)) => {
+  let widthRange = Array.init(width, identity);
+  let heightRange = Array.init(height, identity);
+  Array.fold_left(
+    (acc, w) => {
+      let coords =
+        Array.map(h => (x + w, y + h), heightRange)->Array.to_list;
+      List.append(acc, coords);
+    },
+    [],
+    widthRange,
+  );
+};
 
-let part1impl = x => {};
-let part2impl = x => {};
+module Instruction = {
+  type t = {
+    id: int,
+    points: list((int, int)),
+  };
+  let parse: string => t =
+    x => {
+      let parts = Js.String.split(" ", x)->Array.to_list;
+      let [idRaw, _, startCoordRaw, sizeRaw] = parts;
+      let id = parseRawId(idRaw);
+      let startCoord = parseRawCoord(startCoordRaw);
+      let sizeRaw = parseRawSize(sizeRaw);
+      let points = makePoints(sizeRaw, startCoord);
+
+      {id, points};
+    };
+  let pointsMatchForInstruction = (points: list((int, int)), i: t) => {
+    let givenPoints =
+      Belt.Set.fromArray(
+        Array.of_list(points),
+        ~id=(module Util.PairComparator),
+      );
+    let iPoints =
+      Belt.Set.fromArray(
+        Array.of_list(i.points),
+        ~id=(module Util.PairComparator),
+      );
+
+    Belt.Set.eq(givenPoints, iPoints);
+  };
+};
+
+module Grid = {
+  let init = Belt.Map.Dict.empty;
+  let addIdToKey = (k, id, d) => {
+    let vals =
+      Belt.Map.Dict.getWithDefault(d, k, [], ~cmp=Util.PairComparator.cmp);
+    Belt.Map.Dict.set(d, k, [id, ...vals], ~cmp=Util.PairComparator.cmp);
+  };
+  let countKeysWithValuePred = (w, d) =>
+    Belt.Map.Dict.reduce(d, 0, (acc, _, v) => w(v) ? succ(acc) : acc);
+  let foldLeft = (r, i, d) => Belt.Map.Dict.reduce(d, i, r);
+};
+
+let calculateClaims = {
+  let initialGrid = Grid.init;
+
+  let claims =
+    List.fold_left(
+      (gridO, line) => {
+        let instruction = Instruction.parse(line);
+
+        List.fold_left(
+          (acc, p) => Grid.addIdToKey(p, instruction.id, acc),
+          gridO,
+          instruction.points,
+        );
+      },
+      initialGrid,
+    );
+
+  claims;
+};
+
+let part1impl =
+  calculateClaims ||> Grid.countKeysWithValuePred(x => List.length(x) > 1);
+let part2impl = lines =>
+  calculateClaims(lines)
+  |> Grid.foldLeft(
+       (accO, k, v) =>
+         List.length(v) > 1 ?
+           accO :
+           List.fold_left(
+             (accI, id) => {
+               let idKey = string_of_int(id);
+               Js.log(List.length(v));
+               Rationale.Dict.has(idKey, accI) ?
+                 Rationale.Dict.evolve([(idKey, l => [k, ...l])], accI) :
+                 Rationale.Dict.set(idKey, [k], accI);
+             },
+             accO,
+             v,
+           ),
+       [],
+     )
+  |> (
+    filledInstructionPairs => {
+      let instructions = List.map(Instruction.parse, lines);
+
+      Rationale.Dict.fold_left(
+        (matchO, _p, v) =>
+          !matchO ?
+            {
+              let match =
+                Rationale.RList.find(
+                  Instruction.pointsMatchForInstruction(v),
+                  instructions,
+                );
+              switch (match) {
+              | None => false
+              | Some(i) =>
+                Js.log(i);
+                true;
+              };
+            } :
+            matchO,
+        false,
+        filledInstructionPairs,
+      );
+    }
+  );
 
 let solution =
   switch (inputLines) {
