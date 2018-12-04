@@ -7,4 +7,5 @@ let readFileAsString = f =>
   };
 
 let readLinesFromFile = f => readFileAsString(f) <$> Js.String.split("\n");
-let readInputLinesFromDir = dir => readLinesFromFile(dir ++ "/input.txt");
+let readInputLinesFromDir = dir =>
+  readLinesFromFile(dir ++ "/input.txt") <$> Array.to_list;
