@@ -15,7 +15,8 @@
   "bs-dependencies": [
     "rationale",
     "bs-node",
-    "@glennsl/bs-json"
+    "@glennsl/bs-json",
+    "bs-moment"
   ],
   "warnings": {
     "error": "+101"
