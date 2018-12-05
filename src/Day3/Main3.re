@@ -40,8 +40,8 @@ module Instruction = {
       let [idRaw, _, startCoordRaw, sizeRaw] = parts;
       let id = parseRawId(idRaw);
       let startCoord = parseRawCoord(startCoordRaw);
-      let sizeRaw = parseRawSize(sizeRaw);
-      let points = makePoints(sizeRaw, startCoord);
+      let size = parseRawSize(sizeRaw);
+      let points = makePoints(size, startCoord);
 
       {id, points};
     };
@@ -61,6 +61,26 @@ module Instruction = {
   };
 };
 
+module ClaimSpec = {
+  type t = {
+    id: int,
+    startCoord: (int, int),
+    size: (int, int),
+  };
+  let parse: string => t =
+    x => {
+      let parts = Js.String.split(" ", x)->Array.to_list;
+      let [idRaw, _, startCoordRaw, sizeRaw] = parts;
+      let id = parseRawId(idRaw);
+      let startCoord = parseRawCoord(startCoordRaw);
+      let size = parseRawSize(sizeRaw);
+
+      {id, startCoord, size};
+    };
+  /* Make point set out of each & compare */
+  let claimsIntersect: (t, t) => bool = (a, b) => false;
+};
+
 module Grid = {
   let init = Belt.Map.Dict.empty;
   let addIdToKey = (k, id, d) => {
@@ -76,70 +96,23 @@ module Grid = {
 let calculateClaims = {
   let initialGrid = Grid.init;
 
-  let claims =
-    List.fold_left(
-      (gridO, line) => {
-        let instruction = Instruction.parse(line);
+  List.fold_left(
+    (gridO, line) => {
+      let instruction = Instruction.parse(line);
 
-        List.fold_left(
-          (acc, p) => Grid.addIdToKey(p, instruction.id, acc),
-          gridO,
-          instruction.points,
-        );
-      },
-      initialGrid,
-    );
-
-  claims;
+      List.fold_left(
+        (acc, p) => Grid.addIdToKey(p, instruction.id, acc),
+        gridO,
+        instruction.points,
+      );
+    },
+    initialGrid,
+  );
 };
 
 let part1impl =
   calculateClaims ||> Grid.countKeysWithValuePred(x => List.length(x) > 1);
-let part2impl = lines =>
-  calculateClaims(lines)
-  |> Grid.foldLeft(
-       (accO, k, v) =>
-         List.length(v) > 1 ?
-           accO :
-           List.fold_left(
-             (accI, id) => {
-               let idKey = string_of_int(id);
-               Js.log(List.length(v));
-               Rationale.Dict.has(idKey, accI) ?
-                 Rationale.Dict.evolve([(idKey, l => [k, ...l])], accI) :
-                 Rationale.Dict.set(idKey, [k], accI);
-             },
-             accO,
-             v,
-           ),
-       [],
-     )
-  |> (
-    filledInstructionPairs => {
-      let instructions = List.map(Instruction.parse, lines);
-
-      Rationale.Dict.fold_left(
-        (matchO, _p, v) =>
-          !matchO ?
-            {
-              let match =
-                Rationale.RList.find(
-                  Instruction.pointsMatchForInstruction(v),
-                  instructions,
-                );
-              switch (match) {
-              | None => false
-              | Some(i) =>
-                Js.log(i);
-                true;
-              };
-            } :
-            matchO,
-        false,
-        filledInstructionPairs,
-      );
-    }
-  );
+let part2impl = lines => calculateClaims(lines);
 
 let solution =
   switch (inputLines) {
