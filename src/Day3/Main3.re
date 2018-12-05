@@ -15,7 +15,9 @@ let parseRawCoord =
   ||> Util.pairOfStringArray;
 let parseRawSize = Js.String.split("x") ||> Util.pairOfStringArray;
 
-let makePoints = ((width, height), (x, y)) => {
+let makePoints = (~size, ~startingCoord) => {
+  let (width, height) = size;
+  let (x, y) = startingCoord;
   let widthRange = Array.init(width, identity);
   let heightRange = Array.init(height, identity);
   Array.fold_left(
@@ -78,7 +80,21 @@ module ClaimSpec = {
       {id, startCoord, size};
     };
   /* Make point set out of each & compare */
-  let claimsIntersect: (t, t) => bool = (a, b) => false;
+  let claimsIntersect: (t, t) => bool =
+    (a, b) => {
+      let aPoints =
+        Belt.Set.fromArray(
+          Array.of_list(makePoints(a.size, a.startCoord)),
+          ~id=(module Util.PairComparator),
+        );
+      let bPoints =
+        Belt.Set.fromArray(
+          Array.of_list(makePoints(b.size, b.startCoord)),
+          ~id=(module Util.PairComparator),
+        );
+
+      Belt.Set.intersect(aPoints, bPoints) |> Belt.Set.size |> (x => x != 0);
+    };
 };
 
 module Grid = {
@@ -112,7 +128,33 @@ let calculateClaims = {
 
 let part1impl =
   calculateClaims ||> Grid.countKeysWithValuePred(x => List.length(x) > 1);
-let part2impl = lines => calculateClaims(lines);
+let part2impl = lines =>
+  List.fold_left(
+    (accO, lO) =>
+      if (accO != 0) {
+        accO;
+      } else {
+        let claim = ClaimSpec.parse(lO);
+
+        let hasIntersect =
+          List.fold_left(
+            (accI, lI) =>
+              if (accI || lO == lI) {
+                accI;
+              } else {
+                /* Js.log3(lO, lI, lO == lI); */
+                let testClaim = ClaimSpec.parse(lI);
+                ClaimSpec.claimsIntersect(claim, testClaim);
+              },
+            false,
+            lines,
+          );
+
+        hasIntersect ? 0 : claim.id;
+      },
+    0,
+    lines,
+  );
 
 let solution =
   switch (inputLines) {
