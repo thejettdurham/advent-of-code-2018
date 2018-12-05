@@ -21,6 +21,7 @@ module Entry = {
     day: int,
     minuteAsleep: int,
     minuteAwake: int,
+    timeAsleep: int,
   };
   let processRawEntries: list((int, string)) => list(t) =
     l => {
