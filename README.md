@@ -1,18 +1,19 @@
-# Basic Reason Template
+# Advent of Code 2018
 
-Hello! This project allows you to quickly get started with Reason and BuckleScript. If you wanted a more sophisticated version, try the `react` template (`bsb -theme react -init .`).
+It's back! Last year, I used JS + Ramda to take a functional approach to solving the challenges, and this year I'm taking it to its natural conclusion by using (Reason)[https://reasonml.github.io/en/]. Reason is essentially Javascript-flavored OCaml, and compiles to Javascript through its sister project Bucklescript.
 
 # Build
+
+Reason files aren't directly runnable, they need to be complied to JS first. The compiled JS is not included in this repo, so you'll need to build it yourself if you want to try it out.
+
 ```
 npm run build
 ```
 
-# Build + Watch
+# Run
+
+The build puts `*.bs.js` files alongside the Reason source that you can run with `node`. Input is always read from `input.txt` in a Day's directory.
 
 ```
-npm run start
+node src/DayN/MainN.bs.js
 ```
-
-
-# Editor
-If you use `vscode`, Press `Windows + Shift + B` it will build automatically
