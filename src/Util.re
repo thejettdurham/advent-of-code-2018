@@ -18,6 +18,16 @@ let pairOfStringArray = ([|a, b|]) => (
 let stringOfPair = ((a, b)) => string_of_int(a) ++ "," ++ string_of_int(b);
 let pairOfString = Js.String.split(",") ||> pairOfStringArray;
 
+let charArrayOfString = s => {
+  let len = Js.String.length(s);
+  let range = Array.init(len, identity);
+
+  Array.fold_left((acc, i) => Array.append(acc, [|s.[i]|]), [||], range);
+};
+
+let stringOfCharArray =
+  Array.fold_left((acc, i) => acc ++ String.make(1, i), "");
+
 module PairComparator =
   Belt.Id.MakeComparable({
     type t = (int, int);
