@@ -1,6 +1,6 @@
 # Advent of Code 2018
 
-It's back! Last year, I used JS + Ramda to take a functional approach to solving the challenges, and this year I'm taking it to its natural conclusion by using (Reason)[https://reasonml.github.io/en/]. Reason is essentially Javascript-flavored OCaml, and compiles to Javascript through its sister project Bucklescript.
+It's back! Last year, I used JS + Ramda to take a functional approach to solving the challenges, and this year I'm taking it to its natural conclusion by using [Reason](https://reasonml.github.io/en/). Reason is essentially Javascript-flavored OCaml, and compiles to Javascript through its sister project [Bucklescript](https://bucklescript.github.io/en/).
 
 # Build
 
